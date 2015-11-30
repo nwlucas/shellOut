@@ -1,5 +1,6 @@
-# Cfg
+# shellOut
 
-A Configuration File parser library. Predominantly inteded to be used in personal projects so it is very opinionated.
+Library used for shelling out commands to the native Os.
 
-A huge portion of inspiration, examples, codes and ideas comes from Viper library by spf13
+N.B.
+Package is solely intended for use within personal packages and to aid in the learning of Go.
