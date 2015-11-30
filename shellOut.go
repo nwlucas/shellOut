@@ -5,18 +5,19 @@
 package shellOut
 
 import (
+    "errors"
     "os"
     "os/exec"
 )
 
-type Cmd struct {
+type CustomCommand struct {
     Name string
     Path string
     Args []string
     Env  []string
 }
 
-var c *Cmd
+var c *CustomCommand
 
 // Function calls the proper initiator for the package to work.
 func init() {
@@ -24,23 +25,38 @@ func init() {
 }
 
 // Function properly initializes each part of the containing struct.
-func New() *Cmd {
-    c := new(Cmd)
+func New() *CustomCommand {
+    c := new(CustomCommand)
     c.Env = os.Environ()
     return c
+}
+
+func GetPath() (string, error) { return c.GetPath() }
+func (c *CustomCommand) GetPath() (string, error) {
+    // If Path is set, return that
+    if c.Path != "" {
+        return c.Path, nil
+    }
+    // If Path is not set AND Name is not empty, attempt to find the path and return that
+    // or error if not found
+    if c.Name != "" {
+        return exec.LookPath(c.Name)
+    }
+    // If Path is not set AND Name is empty, return an error
+    return "", errors.New("Binary name not set. Unable to look up path.")
 }
 
 // Function takes no parameters and calls the underlying os/exec function to do the work.
 // It Runs the command and gives no output. Returns an error for unsuccessful runs otherwise
 // returns nil.
-func Run() error          { return c.Run() }
-func (c *Cmd) Run() error { return exec.Command(c.Name, c.Args...).Run() }
+func Run() error                    { return c.Run() }
+func (c *CustomCommand) Run() error { return exec.Command(c.Name, c.Args...).Run() }
 
 // Function takes no parameters and calls the underlying os/exec function to do the work.
 // It Runs the given command and returns the output and nil for the error for successful runs,
 // otherwise returns an error.
 func Output() ([]byte, error) { return c.Output() }
-func (c *Cmd) Output() ([]byte, error) {
+func (c *CustomCommand) Output() ([]byte, error) {
     output, err := exec.Command(c.Name, c.Args...).Output()
     return output, err
 }
@@ -48,7 +64,7 @@ func (c *Cmd) Output() ([]byte, error) {
 // Function takes a single string paramter and adds it to the Args slice if not empty
 // This function can be called multiple times to keep adding arguments
 func AddArg(arg string) { c.AddArg(arg) }
-func (c *Cmd) AddArg(arg string) {
+func (c *CustomCommand) AddArg(arg string) {
     if arg != "" {
         c.Args = append(c.Args, arg)
     }
